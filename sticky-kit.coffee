@@ -11,12 +11,14 @@ $.fn.stick_in_parent = (opts={}) ->
     inner_scrolling
     recalc_every
     parent: parent_selector
-    offset_top
+    offset_top,
+    min_width,
     spacer: manual_spacer
     bottoming: enable_bottoming
   } = opts
 
   offset_top ?= 0
+  min_width ?= 0
   parent_selector ?= undefined
   inner_scrolling ?= true
   sticky_class ?= "is_stuck"
@@ -131,6 +133,13 @@ $.fn.stick_in_parent = (opts={}) ->
           delta = scroll - last_pos
         last_pos = scroll
 
+        viewport_width = Math.max(document.documentElement.clientWidth, window.innerWidth or 0)
+        always_unstuck = false
+
+        if viewport_width < min_width
+          fixed = false
+          always_unstuck = true
+
         if fixed
           if enable_bottoming
             will_bottom = scroll + height + offset > parent_height + parent_top
@@ -145,7 +154,7 @@ $.fn.stick_in_parent = (opts={}) ->
               }).trigger("sticky_kit:unbottom")
 
           # unfixing
-          if scroll < top
+          if scroll < top or always_unstuck
             fixed = false
             offset = offset_top
 
@@ -178,7 +187,7 @@ $.fn.stick_in_parent = (opts={}) ->
 
         else
           # fixing
-          if scroll > top
+          if scroll > top and !always_unstuck
             fixed = true
             css = {
               position: "fixed"
@@ -261,5 +270,4 @@ $.fn.stick_in_parent = (opts={}) ->
 
     ) $ elm
   @
-
 
